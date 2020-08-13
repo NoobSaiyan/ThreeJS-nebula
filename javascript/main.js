@@ -1,8 +1,7 @@
 //defining main elements
-let scene,
-  camera,
-  renderer,
-  cloudParticles = [];
+let scene, camera, renderer, controls;
+
+const cloudParticles = [];
 
 //main function
 function init() {
@@ -11,14 +10,30 @@ function init() {
     60,
     window.innerWidth / window.innerHeight,
     1,
-    1000
+    6000
   );
+  var gridHelper = new THREE.GridHelper(100, 100);
+  scene.add(gridHelper);
 
   //setting up camera
   camera.position.z = 1;
   camera.rotation.x = 1.16;
   camera.rotation.y = -0.12;
   camera.rotation.z = 0.27;
+  var helper = new THREE.CameraHelper(camera);
+  scene.add(helper);
+
+  //setting renderer
+  renderer = new THREE.WebGLRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  //adding fog to the scene
+  scene.fog = new THREE.FogExp2(0x191414, 0.0009);
+  renderer.setClearColor(scene.fog.color);
+
+  //controls
+  // controls = new THREE.OrbitControls(camera, renderer.domElement);
 
   //setting main ambient light
   let ambient = new THREE.AmbientLight(0x555555);
@@ -28,6 +43,8 @@ function init() {
   let directionalLight = new THREE.DirectionalLight(0x1db954);
   directionalLight.position.set(0, 0, 1);
   scene.add(directionalLight);
+  var helper = new THREE.DirectionalLightHelper(directionalLight, 5);
+  scene.add(helper);
 
   //three point lights for effect
   let greenLight = new THREE.PointLight(0x1db954, 50, 450, 1.7);
@@ -39,15 +56,6 @@ function init() {
   let blueLight = new THREE.PointLight(0x3677ac, 50, 450, 1.7);
   blueLight.position.set(300, 300, 200);
   scene.add(blueLight);
-
-  //setting renderer
-  renderer = new THREE.WebGLRenderer();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
-
-  //adding fog to the scene
-  scene.fog = new THREE.FogExp2(0x191414, 0.001);
-  renderer.setClearColor(scene.fog.color);
 
   //loading texture
   let loader = new THREE.TextureLoader();
@@ -73,6 +81,36 @@ function init() {
       cloudParticles.push(cloud);
       scene.add(cloud);
     }
+  });
+
+  //main text
+  var Fontloader = new THREE.FontLoader();
+  Fontloader.load("../fonts/helvetiker_regular.typeface.json", function (font) {
+    var textGeometry = new THREE.TextGeometry("NOOB!!!", {
+      font: font,
+      size: 80,
+      height: 5,
+      curveSegments: 12,
+      bevelEnabled: true,
+      bevelThickness: 10,
+      bevelSize: 2,
+      bevelOffset: 0,
+      bevelSegments: 5,
+    });
+    var textMaterial = new THREE.MeshPhongMaterial({
+      color: 0xff0000,
+      specular: 0xffffff,
+    });
+
+    var text = new THREE.Mesh(textGeometry, textMaterial);
+    text.position.x = -130;
+    text.position.y = 430;
+    text.position.z = -120;
+    text.rotation.x = 1.16;
+    text.rotation.y = -0.12;
+    text.rotation.z = 0.27;
+
+    scene.add(text);
   });
 
   loader.load("../images/album.jpg", function (texture) {
@@ -126,6 +164,7 @@ function onWindowResize() {
 function render() {
   composer.render(0.1);
   requestAnimationFrame(render);
+  // controls.update();
   cloudParticles.forEach((p) => {
     p.rotation.z -= 0.001;
   });
